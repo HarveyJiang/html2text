@@ -1,0 +1,85 @@
+# -*- coding: utf-8 -*-
+# __create:2017/10/22 11:35
+import html2text
+from lxml import html
+
+
+class Html2TextGuide(object):
+    def __init__(self, content):
+        self.html_content = content
+        # hidden display:none visibility:hidden
+        self.ignore_hidden = True
+        # hidden class='hidden'
+        self.hidden_classes = []
+        self.mk_attrs = {}
+
+    def remove_hidden_tags(self):
+        doc = html.fromstring(self.html_content)
+        for h_class in self.hidden_classes:
+            self._drop_hidden_tags(doc.cssselect(h_class))
+
+        if self.ignore_hidden:
+            xpath_tpl = '//*[contains(translate(normalize-space(@style), "ABCDEFGHIJKLMNOPQRSTUVWXYZ ", "abcdefghijklmnopqrstuvwxyz"),"{0}")]'
+            display_none = xpath_tpl.format('display:none')
+            visibility_hidden = xpath_tpl.format('visibility:hidden')
+            self._drop_hidden_tags(doc.xpath(display_none + '|' + visibility_hidden))
+        # http_links = doc.xpath('//text()[contains(.,"http:")]')
+        self.html_content = html.tostring(doc, encoding='utf-8')
+
+    def mk(self):
+        if (self.ignore_hidden):
+            self.remove_hidden_tags()
+
+        text_maker = html2text.HTML2Text()
+        for attr, value in self.mk_attrs.iteritems():
+            setattr(text_maker, attr, value)
+        text = text_maker.handle(self.html_content)
+        print(text)
+
+    def _drop_hidden_tags(self, tags):
+        for tag in tags:
+            tag.drop_tree()
+
+
+if __name__ == '__main__':
+    html_content = u'''<div class="xwnr">
+            <div class="wz hidden2" ><p>国信招标集团股份有限公司受中国计量科学研究院的委托，就中国计量科学研究院两院区实验室零星修缮工程二期—和平里院区光学楼修缮改造工程EPC总承包项目项目（项目编号：GXTC-1701026）组织采购，评标工作已经结束，中标结果如下：</p><p></p><p>&nbsp;</p><p><strong>一、项目信息</strong></p><p>项目编号：GXTC-1701026</p><p>项目名称：中国计量科学研究院两院区实验室零星修缮工程二期—和平里院区光学楼修缮改造工程EPC总承包项目</p><p>项目联系人：邵冉、张超颖</p><p>联系方式：010-88354433-346、783</p><p>&nbsp;</p><p><strong>二、<a href="http://lilun.caigou2003.com/recijiedu/2015-02-06/2614.html" target="_blank" class="infotextkey">采购单</a>位信息</strong></p><p><a href="http://lilun.caigou2003.com/recijiedu/2015-02-06/2614.html" target="_blank" class="infotextkey">采购单</a>位名称：中国计量科学研究院</p><p>采购单位地址：北京市朝阳区北三环东路18号</p><p>采购单位联系方式：王宏、苑庆伟  010-64524348、010-64524344</p><p>&nbsp;</p><p><strong>三、项目用途、简要技术要求及合同履行日期：</strong></p><p></p><p>详见招标文件及中标公告附件</p><p></p><p>&nbsp;</p><p></p><p><strong>四、<a href="http://lilun.caigou2003.com/recijiedu/2365676.html" target="_blank" class="infotextkey">采购代理机构</a>信息</strong></p><p><a href="http://lilun.caigou2003.com/recijiedu/2365676.html" target="_blank" class="infotextkey">采购代理机构</a>全称：国信招标集团股份有限公司</p><p>采购代理机构地址：北京市海淀区首体南路22号国兴大厦11层</p><p>采购代理机构联系方式：邵冉、张超颖 13720096213</p><p>&nbsp;</p><p><strong>五、中标信息</strong></p><p><a href="http://lilun.caigou2003.com/recijiedu/2015-02-06/2615.html" target="_blank" class="infotextkey">招标公告</a>日期：2017年09月15日</p><p>中标日期：2017年10月20日</p><p>总中标金额：<fmt:formatnumber type="currency" pattern="￥.000000#">492.075</fmt:formatnumber> 万元（人民币）</p><p>中标供应商名称、联系地址及中标金额：</p><p></p><table border="1" cellpadding="0" cellspacing="0">	<tbody>		<tr>			<td><p>序号<p></td>			<td>中标供应商名称</td>			<td>中标供应商联系地址</td>			<td>中标金额(万元)</td>		</tr>		<tr>			<td>1</td>			<td><p>恒万实业有限公司<p></td>			<td>北京市西城区广安门外鸭子桥6号2层</td>			<td>492.075000</td>		</tr>	</tbody></table><p></p><p>&nbsp;</p><p>评审专家名单：</p><p>沈惠身、申晓芳、许轶、杨会春、张小华、陆梅、殷彤</p><p>&nbsp;</p><p>中标标的名称、规格型号、数量、单价、服务要求：</p><p></p><p>详见招标文件及中标公告附件</p><p></p><p>&nbsp;</p><p><strong>六、其它补充事宜</strong></p><p></p><p>无</p><p></p>    <p>&nbsp;</p>     <p></p>       <p></p> <p></p> <p></p>       <p>&nbsp;</p>           <p></p></div>
+<p><p><p>
+            HELLo<p><p><p>world
+            <br />
+			<br />
+			http://baidu.com
+			<br />
+			<br />
+			good
+          </div>
+
+<ul style='visibility   :   hidden   '>
+    <li>1222</li>
+    <li>2</li>
+    </ul>
+    <ul style='     DISPLAY      :   none   '>
+    <li>1222</li>
+    <li>2</li>
+    </ul>
+    <ul style='display:none' class='hidden1'>
+    <li>1</li>
+    <li>2</li>
+    </ul>
+
+          '''
+    doc = Html2TextGuide(html_content)
+    doc.hidden_classes = ['.hidden1']
+    doc.ignore_hidden = True
+    doc.mk_attrs = {
+        # 单个换行
+        'body_width'    : 0, 'single_line_break': True,
+        # 保留 html table 标签
+        'bypass_tables' : True,
+        # 使用mk table后对其
+        'pad_tables'    : True, 'ignore_tables': False,
+        'ignore_anchors': True, 'ignore_images': True, 'ignore_emphasis': True, 'ignore_links': True,
+        'ul_item_mark'  : '', 'emphasis_mark': ''
+    }
+
+    doc.mk()
